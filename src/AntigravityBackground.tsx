@@ -1,108 +1,121 @@
 import { useEffect, useRef } from "react";
 
 type Particle = {
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    r: number;
-    hue: number;
+  x: number;
+  y: number;
+  ox: number;
+  oy: number;
+  vx: number;
+  vy: number;
+  r: number;
+  color: string;
 };
 
 export default function AntigravityBackground() {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const mouse = useRef({ x: -1000, y: -1000 });
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouse = useRef({ x: -1000, y: -1000 });
 
-    useEffect(() => {
-        const canvas = canvasRef.current!;
-        const ctx = canvas.getContext("2d")!;
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-        const resize = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationId: number;
+
+    const resize = () => {
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+
+        canvas.style.width = `${window.innerWidth}px`;
+        canvas.style.height = `${window.innerHeight}px`;
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         };
-        resize();
-        window.addEventListener("resize", resize);
+    resize();
 
-        window.addEventListener("mousemove", (e) => {
-            mouse.current.x = e.clientX;
-            mouse.current.y = e.clientY;
-        });
+    const onMouseMove = (e: MouseEvent) => {
+      mouse.current.x = e.clientX;
+      mouse.current.y = e.clientY;
+    };
 
-        // 🔥 Google-inspired gradient hues
-        const palette = [210, 330, 45, 120, 260];
+    window.addEventListener("resize", resize);
+    window.addEventListener("mousemove", onMouseMove);
 
-        const particles: Particle[] = Array.from({ length: 350 }, () => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            vx: (Math.random() - 0.5) * 0.5,
-            vy: (Math.random() - 0.5) * 0.5,
-            r: Math.random() * 2.2 + 0.8,
-            hue: palette[Math.floor(Math.random() * palette.length)],
-        }));
+    const colors = ["#EA4335", "#4285F4", "#FBBC05", "#34A853"];
 
-        function animate() {
-            // 🌫️ Soft fade (motion trails)
-            ctx.fillStyle = "rgba(255,255,255,0.12)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const particles: Particle[] = Array.from({ length: 500 }, () => {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
 
-            ctx.globalCompositeOperation = "lighter"; // ✨ color blending
+      return {
+        x,
+        y,
+        ox: x,
+        oy: y,
+        vx: 0,
+        vy: 0,
+        r: Math.random() * 1.4 + 0.6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      };
+    });
 
-            particles.forEach((p) => {
-                const dx = p.x - mouse.current.x;
-                const dy = p.y - mouse.current.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                const radius = 160;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                if (dist < radius) {
-                    const force = (radius - dist) / radius;
-                    const angle = Math.atan2(dy, dx);
+      for (const p of particles) {
+        const spring = 0.01;
+        p.vx += (p.ox - p.x) * spring;
+        p.vy += (p.oy - p.y) * spring;
 
-                    p.vx += Math.cos(angle) * force * 0.9;
-                    p.vy += Math.sin(angle) * force * 0.9;
-                }
+        const dx = p.x - mouse.current.x;
+        const dy = p.y - mouse.current.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const radius = 140;
 
-                p.x += p.vx;
-                p.y += p.vy;
-
-                // 🧈 smooth motion
-                p.vx *= 0.94;
-                p.vy *= 0.94;
-
-                // wrap around edges
-                if (p.x < 0) p.x = canvas.width;
-                if (p.x > canvas.width) p.x = 0;
-                if (p.y < 0) p.y = canvas.height;
-                if (p.y > canvas.height) p.y = 0;
-
-                // 🌟 Glow
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = `hsla(${p.hue}, 90%, 65%, 0.8)`;
-                ctx.fillStyle = `hsla(${p.hue}, 90%, 60%, 0.9)`;
-                ctx.fill();
-            });
-
-            ctx.globalCompositeOperation = "source-over";
-            requestAnimationFrame(animate);
+        if (dist < radius) {
+          const force = (radius - dist) / radius;
+          const angle = Math.atan2(dy, dx);
+          p.vx += Math.cos(angle) * force * 0.6;
+          p.vy += Math.sin(angle) * force * 0.6;
         }
 
-        animate();
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.88;
+        p.vy *= 0.88;
 
-        return () => {
-            window.removeEventListener("resize", resize);
-        };
-    }, []);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      }
 
-    return (
-        <canvas
-            ref={canvasRef}
-            style={{
-                position: "fixed",
-                inset: 0,
-                zIndex: 0,
-            }}
-        />
-    );
+      animationId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", onMouseMove);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: "none",
+        background: "#ffffff",
+      }}
+    />
+  );
 }
