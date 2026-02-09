@@ -47,7 +47,7 @@ export default function AntigravityBackground() {
 
     const colors = ["#EA4335", "#4285F4", "#FBBC05", "#34A853"];
 
-    const particles: Particle[] = Array.from({ length: 500 }, () => {
+    const particles: Particle[] = Array.from({ length: 800 }, () => {
       const x = Math.random() * canvas.width;
       const y = Math.random() * canvas.height;
 
@@ -114,7 +114,7 @@ export default function AntigravityBackground() {
         inset: 0,
         zIndex: 0,
         pointerEvents: "none",
-        background: "#ffffff",
+        background: "#b0d2f0",
       }}
     />
   );
