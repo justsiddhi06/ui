@@ -16,7 +16,7 @@ const App: React.FC = () => {
       {/* 🌌 Background */}
       <AntigravityBackground />
 
-      {/* 💬 Chat UI */}
+      {/* Chat UI */}
       <div className="page">
         <div className="card">
           <div className="chat-container">

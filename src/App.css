@@ -10,13 +10,13 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  z-index: 1; /* 👈 above canvas */
+  z-index: 1; 
 }
 
 .card {
-  width: 90%;
-  max-width: 1100px;
-  background: rgba(255, 255, 255, 0.92); /* 🔥 glass feel */
+  width: 80%;
+  max-width: 700px;
+  background: rgba(255, 255, 255, 0.92); 
   backdrop-filter: blur(8px);
   border-radius: 16px;
   padding: 28px;
