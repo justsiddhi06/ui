@@ -5,7 +5,7 @@ import "./App.css";
 const App: React.FC = () => {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
-
+{/*api will be added here*/}
   const handleAsk = () => {
     if (!question.trim()) return;
     setAnswer(`This is a sample AI response for:\n\n"${question}"`);
