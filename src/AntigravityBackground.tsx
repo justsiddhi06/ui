@@ -7,7 +7,7 @@ type Particle = {
   oy: number;
   vx: number;
   vy: number;
-  r: number;
+  size: number;
   color: string;
 };
 
@@ -25,16 +25,14 @@ export default function AntigravityBackground() {
     let animationId: number;
 
     const resize = () => {
-        const dpr = window.devicePixelRatio || 1;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
 
-        canvas.width = window.innerWidth * dpr;
-        canvas.height = window.innerHeight * dpr;
-
-        canvas.style.width = `${window.innerWidth}px`;
-        canvas.style.height = `${window.innerHeight}px`;
-
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        };
     resize();
 
     const onMouseMove = (e: MouseEvent) => {
@@ -45,11 +43,11 @@ export default function AntigravityBackground() {
     window.addEventListener("resize", resize);
     window.addEventListener("mousemove", onMouseMove);
 
-    const colors = ["#EA4335", "#4285F4", "#FBBC05", "#34A853"];
+    const colors = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626"];
 
-    const particles: Particle[] = Array.from({ length: 800 }, () => {
-      const x = Math.random() * canvas.width;
-      const y = Math.random() * canvas.height;
+    const particles: Particle[] = Array.from({ length: 300 }, () => {
+      const x = Math.random() * window.innerWidth;
+      const y = Math.random() * window.innerHeight;
 
       return {
         x,
@@ -58,7 +56,7 @@ export default function AntigravityBackground() {
         oy: y,
         vx: 0,
         vy: 0,
-        r: Math.random() * 1.4 + 0.6,
+        size: Math.random() * 14 + 18,
         color: colors[Math.floor(Math.random() * colors.length)],
       };
     });
@@ -68,19 +66,20 @@ export default function AntigravityBackground() {
 
       for (const p of particles) {
         const spring = 0.01;
+
         p.vx += (p.ox - p.x) * spring;
         p.vy += (p.oy - p.y) * spring;
 
         const dx = p.x - mouse.current.x;
         const dy = p.y - mouse.current.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const radius = 140;
+        const radius = 160;
 
         if (dist < radius) {
           const force = (radius - dist) / radius;
           const angle = Math.atan2(dy, dx);
-          p.vx += Math.cos(angle) * force * 0.6;
-          p.vy += Math.sin(angle) * force * 0.6;
+          p.vx += Math.cos(angle) * force * 0.5;
+          p.vy += Math.sin(angle) * force * 0.5;
         }
 
         p.x += p.vx;
@@ -88,10 +87,9 @@ export default function AntigravityBackground() {
         p.vx *= 0.88;
         p.vy *= 0.88;
 
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.font = `${p.size}px Inter, system-ui, sans-serif`;
         ctx.fillStyle = p.color;
-        ctx.fill();
+        ctx.fillText(".", p.x, p.y);
       }
 
       animationId = requestAnimationFrame(animate);
@@ -109,12 +107,14 @@ export default function AntigravityBackground() {
   return (
     <canvas
       ref={canvasRef}
+      aria-hidden="true"
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 0,
         pointerEvents: "none",
-        background: "#b0d2f0",
+        background: "#e8e9ec",
+        
       }}
     />
   );
